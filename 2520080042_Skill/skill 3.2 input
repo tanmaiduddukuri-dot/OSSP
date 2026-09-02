@@ -1,0 +1,213 @@
+tanmaiduddukuri@DESKTOP-I84UHM2:~/OSLab/Skill$ cat skill
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node
+{
+    int data;
+    struct Node *next;
+} Node;
+
+int main()
+{
+    int capacity = 2;
+    int size = 0;
+
+    int *buffer = malloc(capacity * sizeof(int));
+
+    if (buffer == NULL)
+    {
+        perror("malloc");
+        return 1;
+    }
+
+    printf("Dynamic Buffer Demonstration\n");
+
+    /* Dynamically allocate and resize array */
+    for (int i = 1; i <= 10; i++)
+    {
+        if (size == capacity)
+        {
+            capacity *= 2;
+
+            int *temp = realloc(buffer, capacity * sizeof(int));
+
+            if (temp == NULL)
+            {
+                perror("realloc");
+                free(buffer);
+                return 1;
+            }
+
+            buffer = temp;
+
+            printf("Buffer resized to capacity: %d\n", capacity);
+        }
+
+        buffer[size++] = i * 10;
+    }
+
+    printf("\nStored values:\n");
+
+    for (int i = 0; i < size; i++)
+    {
+        printf("%d ", buffer[i]);
+    }
+
+    printf("\n");
+
+    /* Create linked list */
+    Node *head = NULL;
+
+    for (int i = 1; i <= 5; i++)
+    {
+        Node *newNode = malloc(sizeof(Node));
+
+        if (newNode == NULL)
+        {
+            perror("malloc");
+            free(buffer);
+            return 1;
+        }
+
+        newNode->data = i;
+        newNode->next = head;
+        head = newNode;
+    }
+
+    printf("\nLinked List:\n");
+
+    Node *current = head;
+
+    while (current != NULL)
+    {
+        printf("%d -> ", current->data);
+        current = current->next;
+    }
+
+    printf("NULL\n");
+
+    /* Release linked list memory */
+    current = head;
+
+    while (current != NULL)
+    {
+        Node *temp = current;
+        current = current->next;
+        free(temp);
+    }
+
+    /* Release dynamic array */
+    free(buffer);
+
+    printf("\nAll dynamically allocated memory released.\n");
+
+    return 0;
+}#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node
+{
+    int data;
+    struct Node *next;
+} Node;
+
+int main()
+{
+    int capacity = 2;
+    int size = 0;
+
+    int *buffer = malloc(capacity * sizeof(int));
+
+    if (buffer == NULL)
+    {
+        perror("malloc");
+        return 1;
+    }
+
+    printf("Dynamic Buffer Demonstration\n");
+
+    /* Dynamically allocate and resize array */
+    for (int i = 1; i <= 10; i++)
+    {
+        if (size == capacity)
+        {
+            capacity *= 2;
+
+            int *temp = realloc(buffer, capacity * sizeof(int));
+
+            if (temp == NULL)
+            {
+                perror("realloc");
+                free(buffer);
+                return 1;
+            }
+
+            buffer = temp;
+
+            printf("Buffer resized to capacity: %d\n", capacity);
+        }
+
+        buffer[size++] = i * 10;
+    }
+
+    printf("\nStored values:\n");
+
+    for (int i = 0; i < size; i++)
+    {
+        printf("%d ", buffer[i]);
+    }
+
+    printf("\n");
+
+    /* Create linked list */
+    Node *head = NULL;
+
+    for (int i = 1; i <= 5; i++)
+    {
+        Node *newNode = malloc(sizeof(Node));
+
+        if (newNode == NULL)
+        {
+            perror("malloc");
+            free(buffer);
+            return 1;
+        }
+
+        newNode->data = i;
+        newNode->next = head;
+        head = newNode;
+    }
+
+    printf("\nLinked List:\n");
+
+    Node *current = head;
+
+    while (current != NULL)
+    {
+        printf("%d -> ", current->data);
+        current = current->next;
+    }
+
+    printf("NULL\n");
+
+    /* Release linked list memory */
+    current = head;
+
+    while (current != NULL)
+    {
+        Node *temp = current;
+        current = current->next;
+        free(temp);
+    }
+
+    /* Release dynamic array */
+    free(buffer);
+
+    printf("\nAll dynamically allocated memory released.\n");
+
+    return 0;
+}
+tanmaiduddukuri@DESKTOP-I84UHM2:~/OSLab/Skill$ cat input
+tanmaiduddukuri@DESKTOP-I84UHM2:~/OSLab/Skill$ cat 3.c
+tanmaiduddukuri@DESKTOP-I84UHM2:~/OSLab/Skill$
