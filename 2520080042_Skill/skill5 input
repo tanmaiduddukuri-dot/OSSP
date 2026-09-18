@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX 500
+
+void parseInput(char *input) {
+    int i = 0;
+    char token[MAX];
+    int j = 0;
+
+    printf("\nParsed Tokens:\n");
+
+    while (input[i] != '\0') {
+
+        // Skip spaces
+        while (input[i] == ' ')
+            i++;
+
+        if (input[i] == '\0')
+            break;
+
+        j = 0;
+
+        // Single quotes
+        if (input[i] == '\'') {
+            i++;
+
+            while (input[i] != '\0' && input[i] != '\'') {
+                token[j++] = input[i++];
+            }
+
+            if (input[i] == '\'')
+                i++;
+            else {
+                printf("Error: Missing closing single quote.\n");
+                return;
+            }
+
+            token[j] = '\0';
+
+            printf("Single Quoted: [%s]\n", token);
+        }
+
+        // Double quotes
+        else if (input[i] == '"') {
+            i++;
+
+            while (input[i] != '\0' && input[i] != '"') {
+                token[j++] = input[i++];
+            }
+
+            if (input[i] == '"')
+                i++;
+            else {
+                printf("Error: Missing closing double quote.\n");
+                return;
+            }
+
+            token[j] = '\0';
+
+            printf("Double Quoted: [%s]\n", token);
+        }
+
+        // Normal token
+        else {
+            while (input[i] != '\0' && input[i] != ' ' &&
+                   input[i] != '\'' && input[i] != '"') {
+                token[j++] = input[i++];
+            }
+
+            token[j] = '\0';
+
+            printf("Normal Token: [%s]\n", token);
+        }
+    }
+}
+
+int main() {
+    char input[MAX];
+
+    printf("Enter command: ");
+    fgets(input, MAX, stdin);
+
+    input[strcspn(input, "\n")] = '\0';
+
+    if (strlen(input) == 0) {
+        printf("Error: Empty command.\n");
+        return 0;
+    }
+
+    parseInput(input);
+
+    return 0;
+}
