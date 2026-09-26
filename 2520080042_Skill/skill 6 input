@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_TOKENS 64
+#define MAX_TOKEN_LEN 256
+
+static int parse_line(const char *input, char tokens[][MAX_TOKEN_LEN]) {
+    int token_count = 0;
+    int pos = 0;
+    int in_token = 0;
+
+    for (size_t i = 0; input[i] != '\0'; i++) {
+        char c = input[i];
+
+        if (c == '\\' && input[i + 1] != '\0') {
+            i++;
+            tokens[token_count][pos++] = input[i];
+            in_token = 1;
+            continue;
+        }
+
+        if (c == ' ' || c == '\t') {
+            if (in_token) {
+                tokens[token_count][pos] = '\0';
+                token_count++;
+                pos = 0;
+                in_token = 0;
+            }
+            continue;
+        }
+
+        tokens[token_count][pos++] = c;
+        in_token = 1;
+    }
+
+    if (in_token) {
+        tokens[token_count][pos] = '\0';
+        token_count++;
+    }
+
+    return token_count;
+}
+
+int main(void) {
+    char input[1024];
+    char tokens[MAX_TOKENS][MAX_TOKEN_LEN];
+
+    printf("Escape-sequence parser demo.\n");
+    printf("Try inputs like:  my\\ file.txt is\\ here\n");
+    printf("               :  hello\\\\world test\n");
+    printf("Type 'exit' to quit.\n\n");
+
+    while (1) {
+        printf("parser> ");
+        fflush(stdout);
+
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            printf("\nEOF. Exiting.\n");
+            break;
+        }
+        input[strcspn(input, "\n")] = '\0';
+
+        if (strcmp(input, "exit") == 0) {
+            break;
+        }
+
+        int count = parse_line(input, tokens);
+
+        printf("Parsed %d token(s):\n", count);
+        for (int i = 0; i < count; i++) {
+            printf("  [%d] \"%s\"\n", i, tokens[i]);
+        }
+    }
+
+    return 0;
+}
