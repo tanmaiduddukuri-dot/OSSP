@@ -1,0 +1,89 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#define MAX_PATH_LEN 1024
+
+static char *resolve_command(const char *command) {
+    if (strchr(command, '/') != NULL) {
+        if (access(command, X_OK) == 0) {
+            return strdup(command);
+        }
+        return NULL;
+    }
+
+    const char *path_env = getenv("PATH");
+    if (path_env == NULL) {
+        fprintf(stderr, "PATH environment variable not set.\n");
+        return NULL;
+    }
+
+    char *path_copy = strdup(path_env);
+    if (!path_copy) {
+        perror("strdup");
+        return NULL;
+    }
+
+    char *full_path = malloc(MAX_PATH_LEN);
+    if (!full_path) {
+        perror("malloc");
+        free(path_copy);
+        return NULL;
+    }
+
+    char *dir = strtok(path_copy, ":");
+    while (dir != NULL) {
+        snprintf(full_path, MAX_PATH_LEN, "%s/%s", dir, command);
+
+        if (access(full_path, X_OK) == 0) {
+            free(path_copy);
+            return full_path;
+        }
+
+        dir = strtok(NULL, ":");
+    }
+
+    free(path_copy);
+    free(full_path);
+    return NULL;
+}
+
+int main(void) {
+    char input[256];
+
+    const char *path_env = getenv("PATH");
+    printf("Current PATH:\n  %s\n\n", path_env ? path_env : "(not set)");
+
+    printf("Command resolution demo. Type a command name (e.g. ls, gcc, cat).\n");
+    printf("Type 'exit' to quit.\n\n");
+
+    while (1) {
+        printf("resolve> ");
+        fflush(stdout);
+
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            printf("\nEOF. Exiting.\n");
+            break;
+        }
+        input[strcspn(input, "\n")] = '\0';
+
+        if (strcmp(input, "exit") == 0) {
+            break;
+        }
+        if (strlen(input) == 0) {
+            continue;
+        }
+
+        char *resolved = resolve_command(input);
+        if (resolved != NULL) {
+            printf("Found: %s\n", resolved);
+            free(resolved);
+        } else {
+            printf("%s: command not found (searched every directory in $PATH)\n",
+                   input);
+        }
+    }
+
+    return 0;
+}
