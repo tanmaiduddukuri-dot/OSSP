@@ -1,0 +1,148 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAX_VARS 64
+#define MAX_NAME_LEN 64
+#define MAX_VALUE_LEN 256
+#define MAX_LINE 1024
+
+typedef struct {
+    char name[MAX_NAME_LEN];
+    char value[MAX_VALUE_LEN];
+} Variable;
+
+static Variable vars[MAX_VARS];
+static int var_count = 0;
+
+static const char *lookup_var(const char *name) {
+    for (int i = 0; i < var_count; i++) {
+        if (strcmp(vars[i].name, name) == 0) {
+            return vars[i].value;
+        }
+    }
+    return "";
+}
+
+static void set_var(const char *name, const char *value) {
+    for (int i = 0; i < var_count; i++) {
+        if (strcmp(vars[i].name, name) == 0) {
+            strncpy(vars[i].value, value, MAX_VALUE_LEN - 1);
+            vars[i].value[MAX_VALUE_LEN - 1] = '\0';
+            return;
+        }
+    }
+    if (var_count < MAX_VARS) {
+        strncpy(vars[var_count].name, name, MAX_NAME_LEN - 1);
+        strncpy(vars[var_count].value, value, MAX_VALUE_LEN - 1);
+        var_count++;
+    }
+}
+
+static void read_name(const char *input, int *pos, char *out) {
+    int j = 0;
+    while (isalnum((unsigned char)input[*pos]) || input[*pos] == '_') {
+        if (j < MAX_NAME_LEN - 1) {
+            out[j++] = input[*pos];
+        }
+        (*pos)++;
+    }
+    out[j] = '\0';
+}
+
+static void expand_variables(const char *input, char *output) {
+    int in_pos = 0;
+    int out_pos = 0;
+    int len = (int)strlen(input);
+
+    while (in_pos < len) {
+        if (input[in_pos] == '$') {
+            in_pos++;
+
+            char name[MAX_NAME_LEN];
+
+            if (input[in_pos] == '{') {
+                in_pos++;
+
+                if (input[in_pos] == '$' && input[in_pos + 1] == '{') {
+                    in_pos += 2;
+                    char inner_name[MAX_NAME_LEN];
+                    read_name(input, &in_pos, inner_name);
+                    if (input[in_pos] == '}') in_pos++;
+                    if (input[in_pos] == '}') in_pos++;
+
+                    const char *indirect_name = lookup_var(inner_name);
+                    const char *final_value = lookup_var(indirect_name);
+
+                    int vlen = (int)strlen(final_value);
+                    memcpy(output + out_pos, final_value, vlen);
+                    out_pos += vlen;
+                    continue;
+                }
+
+                read_name(input, &in_pos, name);
+                if (input[in_pos] == '}') in_pos++;
+            } else {
+                read_name(input, &in_pos, name);
+            }
+
+            const char *value = lookup_var(name);
+            int vlen = (int)strlen(value);
+            memcpy(output + out_pos, value, vlen);
+            out_pos += vlen;
+        } else {
+            output[out_pos++] = input[in_pos++];
+        }
+    }
+
+    output[out_pos] = '\0';
+}
+
+int main(void) {
+    char input[MAX_LINE];
+    char output[MAX_LINE];
+
+    set_var("NAME", "Tanmai");
+    set_var("GREETING", "Hello");
+    set_var("INNER", "GREETING");
+
+    printf("Variable expansion demo.\n");
+    printf("Known variables: NAME=Tanmai  GREETING=Hello  INNER=GREETING\n");
+    printf("Try:  $GREETING, $NAME!\n");
+    printf("Try:  ${NAME}_suffix\n");
+    printf("Try:  ${UNDEFINED_VAR} <- should expand to nothing\n");
+    printf("Try:  ${${INNER}}      <- nested: INNER points to GREETING\n");
+    printf("Commands: 'set NAME value' to change a variable, 'exit' to quit.\n\n");
+
+    while (1) {
+        printf("expand> ");
+        fflush(stdout);
+
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            printf("\nEOF. Exiting.\n");
+            break;
+        }
+        input[strcspn(input, "\n")] = '\0';
+
+        if (strcmp(input, "exit") == 0) {
+            break;
+        }
+
+        if (strncmp(input, "set ", 4) == 0) {
+            char name[MAX_NAME_LEN], value[MAX_VALUE_LEN];
+            if (sscanf(input + 4, "%63s %255[^\n]", name, value) == 2) {
+                set_var(name, value);
+                printf("Set %s = %s\n", name, value);
+            } else {
+                printf("Usage: set NAME value\n");
+            }
+            continue;
+        }
+
+        expand_variables(input, output);
+        printf("Expanded: \"%s\"\n", output);
+    }
+
+    return 0;
+}
