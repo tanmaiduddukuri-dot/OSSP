@@ -1,0 +1,5 @@
+obj/
+backupsync
+test_source/
+test_backup/
+*.o
